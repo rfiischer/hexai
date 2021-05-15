@@ -86,15 +86,23 @@ class HexBoard:
 class HexTextInterface:
     def __init__(self, x, y):
         self.game = HexBoard(x, y)
-        self.player_cycle = cycle([1, 2])
+        self.player_no = 0
         while self.game.winner is None:
             self.loop()
+            if self.game.crash:
+                print(f"Invalid move, please play again player {self.player_no + 1}")
+                self.game.crash = False
+
+            else:
+                self.player_no += 1
+                self.player_no %= 2
+
         self.show()
         print(f"Player {self.game.winner} won!")
 
     def loop(self):
         self.show()
-        player_no = next(self.player_cycle)
+        player_no = self.player_no + 1
         play = input(f"Player #{player_no} to play: ")
         x, y = map(int, play.split(' '))
         self.game.play(player_no, x, y)
