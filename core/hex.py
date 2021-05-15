@@ -55,22 +55,32 @@ class HexPlayer:
 
 class HexBoard:
     def __init__(self, x, y):
-        self.board = np.zeros((x + 2, y + 2), dtype=np.int8)
+        self.x = x
+        self.y = y
 
+        self.board = np.zeros((x + 2, y + 2), dtype=np.int8)
         self.players = [None, HexPlayer(x, y, 'x'), HexPlayer(x, y, 'y')]  # hacky: 1-based index
         self.board[[0, -1]] = 1
         self.board[:, [0, -1]] = 2
         self.winner = None
+        self.crash = False
 
     def play(self, player_no, x, y):
         current_player = self.players[player_no]
         if self.board[x, y] != 0:
-            raise Exception("Already occupied!")
+            self.crash = True
+
         else:
             self.board[x, y] = player_no
             current_player.place_stone(x, y)
             if current_player.win:
                 self.winner = player_no
+
+    def get_state(self):
+        return self.board[1:-1, 1:-1].reshape((1, -1))
+
+    def get_xy(self, position):
+        return [position // self.y + 1, position % self.y + 1]
 
 
 class HexTextInterface:
