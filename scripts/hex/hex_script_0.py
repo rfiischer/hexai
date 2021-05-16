@@ -125,7 +125,5 @@ for episode in range(num_episodes):
     print(f"Episode: {episode}, Moves: {number_moves}, Win: {num_wins}, Crash: {num_crash},"
           f"Lose: {num_loose}, Loss: {agent.callback.loss[-1]}")
 
-
-game = HexAIGUI(board_size, board_size, 50, agent.online)
-game.draw()
-game.loop()
+# Save model
+keras.models.save_model(agent.online, "./hmodel0")
