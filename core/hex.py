@@ -75,10 +75,13 @@ class HexBoard:
                 self.winner = player_no
 
     def get_state(self):
-        return self.board[1:-1, 1:-1].reshape((1, -1))
+        return self.board[1:-1, 1:-1].reshape((1, self.x, self.y, 1))
 
     def get_xy(self, position):
         return [position // self.y + 1, position % self.y + 1]
+
+    def get_legal(self):
+        return np.where(self.board[1:-1, 1:-1].flatten() == 0)[0]
 
 
 class HexTextInterface:
