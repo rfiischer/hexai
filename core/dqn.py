@@ -4,6 +4,14 @@ import numpy as np
 from random import sample
 
 
+class DQNCallback(keras.callbacks.Callback):
+
+    loss = ['unavailable']
+
+    def on_epoch_end(self, batch, logs=None):
+        self.loss.append(logs["loss"])
+
+
 class DQNAgent:
 
     def __init__(self, model, weights, params):
@@ -11,14 +19,17 @@ class DQNAgent:
         # Online model
         self.online = keras.models.clone_model(model)
         self.online.set_weights(weights)
-        self.online.compile(optimizer=keras.optimizers.RMSprop(),
-                            loss=keras.losses.MeanSquaredError())
+        self.online.compile(optimizer=params['optimizer'],
+                            loss=params['loss'])
 
         # Target model
         self.target = keras.models.clone_model(model)
         self.target.set_weights(weights)
-        self.target.compile(optimizer=keras.optimizers.RMSprop(),
-                            loss=keras.losses.MeanSquaredError())
+        self.target.compile(optimizer=params['optimizer'],
+                            loss=params['loss'])
+
+        # Callback
+        self.callback = DQNCallback()
 
         # Replay memory
         self.replay_memory = deque(maxlen=params['memory_size'])
@@ -70,7 +81,8 @@ class DQNAgent:
                 y[idx, action] = target_value
 
             # Now we fit on this minibatch
-            self.online.fit(x=x, y=y, batch_size=self.batch_size, verbose=0, shuffle=False)
+            self.online.fit(x=x, y=y, batch_size=self.batch_size, verbose=0, shuffle=False,
+                            callbacks=[self.callback])
 
             # Update counter
             self.online_counter += 1
