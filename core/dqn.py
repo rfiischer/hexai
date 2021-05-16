@@ -40,7 +40,7 @@ class DQNAgent:
         # Save parameters
         self.minimum_memory_size = params['minimum_memory_size']
         self.batch_size = params['batch_size']
-        self.input_shape = params['input_shape']
+        self.state_shape = params['state_shape']
         self.action_shape = params['action_shape']
         self.update_target = params['update_target']
         self.discount = params['discount']
@@ -59,14 +59,14 @@ class DQNAgent:
             batch = sample(self.replay_memory, self.batch_size)
 
             # Now we need to compute the target values
-            start_states = np.array([transition[0] for transition in batch]).reshape((-1, *self.input_shape))
+            start_states = np.array([transition[0] for transition in batch]).reshape((-1, *self.state_shape))
             start_q = self.online.predict(start_states)
 
-            end_states = np.array([transition[3] for transition in batch]).reshape((-1, *self.input_shape))
+            end_states = np.array([transition[3] for transition in batch]).reshape((-1, *self.state_shape))
             end_q = self.target.predict(end_states)
 
             # We compute the target values based if we reach a terminal state or not
-            x = np.zeros((self.batch_size, *self.input_shape))
+            x = np.zeros((self.batch_size, *self.state_shape))
             y = start_q
             for idx, (start_state, action, reward, end_state, end_game) in enumerate(batch):
 
@@ -94,4 +94,4 @@ class DQNAgent:
 
     # Get the Q values of the online network
     def get_q(self, state):
-        return self.online.predict(state.reshape(-1, *self.input_shape))
+        return self.online.predict(state.reshape(-1, *self.state_shape))

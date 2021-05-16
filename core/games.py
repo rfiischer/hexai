@@ -1,12 +1,12 @@
 import numpy as np
 import pygame as pg
-from pygame.locals import QUIT, K_UP, K_DOWN, K_LEFT, K_RIGHT, KEYDOWN
+from pygame.locals import QUIT, K_UP, K_DOWN, K_LEFT, K_RIGHT, KEYDOWN, MOUSEBUTTONDOWN
 
 
+# Base Toy game
 class Toy:
 
     REWARD = 10
-    PUNISHMENT = -10
 
     PLAYER = 1
     FRUIT = 2
@@ -68,26 +68,36 @@ class Toy:
     def step(self, move):
         valid = self.move_player(move)
         if not valid:
-            reward = self.PUNISHMENT
+            return_code = -1
             self.end_game()
 
         elif self.player == self.reward:
-            reward = self.REWARD
+            return_code = 1
             self.generate_reward()
             self.score += self.REWARD
             self.frames_counter += 1
 
         else:
             self.frames_counter += 1
-            reward = 0
+            return_code = 0
 
-        return reward
+        return return_code
 
     def end_game(self):
         self.game_over = True
 
     def reset(self):
-        self.__init__(self.width, self.height)
+        self.score = 0
+        self.frames_counter = 0
+        self.game_over = False
+
+        self.field = np.zeros((self.height, self.width))
+        self.player = [np.random.randint(self.height), np.random.randint(self.width)]
+        self.reward = None
+        self.generate_reward()
+
+        self.place_element(self.player, self.PLAYER)
+        self.place_element(self.reward, self.FRUIT)
 
     def window(self):
         pg.init()
@@ -96,7 +106,7 @@ class Toy:
         self.display.fill(self.WHITE)
         self.FPS = pg.time.Clock()
 
-    def loop(self):
+    def loop(self, fps=15):
         self.window()
 
         while True:
@@ -120,6 +130,9 @@ class Toy:
                     if event.key == K_DOWN:
                         self.step(3)
 
+                if event.type == MOUSEBUTTONDOWN and self.game_over:
+                    self.reset()
+
             if not self.game_over:
                 self.display.fill(self.WHITE)
                 self.draw()
@@ -128,7 +141,7 @@ class Toy:
                 self.display.fill(self.BLACK)
 
             pg.display.update()
-            self.FPS.tick(15)
+            self.FPS.tick(fps)
 
     def draw(self):
         for i in range(self.height):
@@ -148,3 +161,78 @@ class Toy:
                                                                    left_top[1],
                                                                    self.ELEMENT_WIDTH,
                                                                    self.ELEMENT_HEIGHT))
+
+
+# Toy game with boolean states
+class BooleanToy(Toy):
+
+    SCALE = 10
+
+    def __init__(self, width, height, ai=None):
+        super().__init__(width, height)
+        self.state_shape = (8, )
+        self.action_shape = (4, )
+        self.ai = ai
+
+    def step(self, move):
+        return_code = super().step(move)
+        return return_code * self.SCALE
+
+    def get_state_from_board(self):
+        state = np.zeros((1, 8))
+
+        # Danger zones (close to walls)
+        if self.player[1] == 0:
+            state[0, 0] = 1
+
+        if self.player[0] == 0:
+            state[0, 1] = 1
+
+        if self.player[1] == self.width - 1:
+            state[0, 2] = 1
+
+        if self.player[0] == self.height - 1:
+            state[0, 3] = 1
+
+        # Where is the reward?
+        if self.reward[1] < self.player[1]:
+            state[0, 4] = 1
+
+        if self.reward[0] < self.player[0]:
+            state[0, 5] = 1
+
+        if self.reward[1] > self.player[1]:
+            state[0, 6] = 1
+
+        if self.reward[0] > self.player[0]:
+            state[0, 7] = 1
+
+        return state
+
+    @staticmethod
+    def get_move_from_action(action):
+        return action
+
+    def ai_loop(self, fps=15):
+        self.window()
+
+        while True:
+            for event in pg.event.get():
+                if event.type == QUIT:
+                    pg.display.quit()
+                    pg.quit()
+                    return
+
+            if not self.game_over:
+                ai_move = np.argmax(self.ai(self.get_state_from_board()))
+                self.step(ai_move)
+                self.display.fill(self.WHITE)
+                self.draw()
+
+            else:
+                self.display.fill(self.BLACK)
+                pg.time.wait(1000)
+                self.reset()
+
+            pg.display.update()
+            self.FPS.tick(fps)
