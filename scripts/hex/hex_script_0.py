@@ -3,7 +3,6 @@ from tensorflow.keras import layers
 import numpy as np
 
 from core.hex import HexBoard
-from core.hex import HexAIGUI
 from core.dqn import DQNAgent
 from core.utils import epsilon_function
 
