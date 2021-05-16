@@ -21,7 +21,7 @@ update_target = 64
 discount = 0.99
 
 # Network parameters
-c1_filters = 3
+c1_filters = 9
 c1_kernel = 2
 
 # Learning parameters
@@ -39,8 +39,8 @@ base_model = keras.Sequential(
     [
         layers.InputLayer(input_shape=(board_size, board_size, 1)),
         layers.Conv2D(c1_filters, c1_kernel, activation="relu", name="c1", bias_initializer="normal"),
-        layers.GlobalMaxPool2D(),
-        layers.Dense(grid_size, name="output")
+        layers.Flatten(),
+        layers.Dense(grid_size, activation="linear", name="output")
     ]
 )
 
@@ -60,6 +60,7 @@ dqn_params = {'memory_size': memory_size,
 agent = DQNAgent(base_model, base_weights, dqn_params)
 
 # Run episodes
+# In this script, we reward for completing the game both in winning and losing scenarios
 num_wins = 0
 num_loose = 0
 num_crash = 0
@@ -69,6 +70,9 @@ for episode in range(num_episodes):
 
     # Perform epsilon-greedy action
     epsilon = epsilon_array[episode]
+
+    # Opponent beginns by choosing random legal move
+    board.play(2, *board.get_xy(np.random.choice(board.get_legal())))
 
     finished = False
     number_moves = 0
@@ -101,20 +105,19 @@ for episode in range(num_episodes):
 
         # No winner yet (second agent plays)
         else:
-
             # Choose random legal move
             board.play(2, *board.get_xy(np.random.choice(board.get_legal())))
 
             # See if opponent wins
             if board.winner is not None:
                 finished = True
-                transition = [start_state, move, punishment, start_state, True]
+                transition = [start_state, move, reward, start_state, True]
                 agent.update_memory(transition)
                 num_loose += 1
 
             else:
                 end_state = board.get_state()
-                transition = [start_state, move, 0, end_state, False]
+                transition = [start_state, move, reward, end_state, False]
                 agent.update_memory(transition)
 
         agent.train()
