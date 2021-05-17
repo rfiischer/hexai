@@ -75,7 +75,7 @@ class HexBoard:
                 self.winner = player_no
 
     def get_state(self):
-        return self.board[1:-1, 1:-1].reshape((1, self.x, self.y, 1))
+        return self.board[1:-1, 1:-1].copy().reshape((1, self.x, self.y, 1))
 
     def get_xy(self, position):
         return [position // self.y + 1, position % self.y + 1]
@@ -230,10 +230,11 @@ class HexAIGUI:
             pg.draw.rect(self.display, [100, 100, 100], rect)
         pg.display.update()
 
-    def loop(self):
+    def loop(self, ai_first=True):
 
         # AI plays first
-        self.ai_turn()
+        if ai_first:
+            self.ai_turn()
 
         while True:
             self.FPS.tick(15)

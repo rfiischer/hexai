@@ -6,4 +6,4 @@ model = keras.models.load_model("./hmodel0")
 
 game = HexAIGUI(3, 3, 50, model)
 game.draw()
-game.loop()
+game.loop(ai_first=False)
