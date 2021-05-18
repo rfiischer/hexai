@@ -52,8 +52,11 @@ class DQNAgent:
     # Perform one training step
     def train(self):
 
+        status = False
         # Wait until there is enough transitions to sample from without probable repetition
         if len(self.replay_memory) >= self.minimum_memory_size:
+
+            status = True
 
             # Get a random batch of transitions
             batch = sample(self.replay_memory, self.batch_size)
@@ -91,6 +94,8 @@ class DQNAgent:
             if self.online_counter >= self.update_target:
                 self.target.set_weights(self.online.get_weights())
                 self.online_counter = 0
+
+        return status
 
     # Get the Q values of the online network
     def get_q(self, state):

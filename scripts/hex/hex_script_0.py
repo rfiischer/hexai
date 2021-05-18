@@ -123,4 +123,4 @@ for episode in range(num_episodes):
 
 # Save model
 keras.models.save_model(agent.online, "./hmodel0")
-savemat('./hmodel0/loss.mat', {'loss': loss})
+savemat('./hmodel0/loss.mat', {'loss': agent.callback.loss[1:]})
