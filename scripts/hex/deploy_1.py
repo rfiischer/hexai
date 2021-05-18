@@ -3,7 +3,7 @@ from tensorflow import keras
 from core.hex import HexAIGUI
 from core.utils import hex_benchmark
 
-model = keras.models.load_model("./hmodel0")
+model = keras.models.load_model("./hmodel1")
 
 print(f"Mistakes: {hex_benchmark(10000, model)}")
 

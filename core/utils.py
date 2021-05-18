@@ -11,7 +11,7 @@ def epsilon_function(e_max, e_min, episodes, period):
     return np.tile(epsilon, number)[:episodes]
 
 
-def benchmark(num_games, model):
+def hex_benchmark(num_games, model):
     mistake = 0
     for i in range(num_games):
         board = HexBoard(3, 3)
@@ -31,3 +31,20 @@ def benchmark(num_games, model):
             mistake += 1
 
     return mistake
+
+
+def gym_benchmark(num_attempts, model, env, episode_length=200):
+    fail = 0
+    for i in range(num_attempts):
+        observation = env.reset()
+
+        for j in range(episode_length):
+
+            action = model(observation)
+            observation, reward, done = env.step(action)
+
+            if done and j < episode_length - 1:
+                fail += 1
+                break
+
+    return fail
