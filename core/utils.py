@@ -33,18 +33,22 @@ def hex_benchmark(num_games, model):
     return mistake
 
 
-def gym_benchmark(num_attempts, model, env, episode_length=200):
+def gym_benchmark(num_attempts, model, env, episode_length=200, render=False):
     fail = 0
     for i in range(num_attempts):
         observation = env.reset()
 
         for j in range(episode_length):
-
-            action = model(observation)
-            observation, reward, done = env.step(action)
+            if render:
+                env.render()
+            action = np.argmax(model(observation.reshape((1, -1))))
+            observation, reward, done, _ = env.step(action)
 
             if done and j < episode_length - 1:
                 fail += 1
                 break
+
+    if render:
+        env.close()
 
     return fail

@@ -22,18 +22,18 @@ update_target = 512
 discount = 0.99
 
 # Network parameters
-d1_size = 8
+d1_size = 32
 
 # Learning parameters
 num_episodes = 1000
-explore_episodes = 750
-epoch_size = 100
+explore_episodes = 250
+epoch_size = 10
 num_benchmark = 10
 episode_length = 200
 e_max = 1
-e_min = 0.1
+e_min = 0.001
 epsilon_array = np.concatenate((epsilon_function(e_max, e_min, explore_episodes, explore_episodes),
-                                [e_min] * 250))
+                                [e_min] * 750))
 reward = 1
 punishment = -1
 
@@ -63,7 +63,6 @@ agent = DQNAgent(base_model, base_weights, dqn_params)
 
 # Run episodes
 num_fail = 0
-num_batch = 0
 average_mistakes = [-1]
 for episode in range(num_episodes):
 
@@ -82,21 +81,23 @@ for episode in range(num_episodes):
             q = agent.get_q(observation)
             action = np.argmax(q)
 
-        new_observation, reward, stop = env.step(action)
-        transition = [observation, action, reward, new_observation, stop]
+        new_observation, reward, stop, _ = env.step(action)
+        transition = [observation.reshape((1, -1)), action, reward, new_observation.reshape((1, -1)), stop]
         agent.update_memory(transition)
+        observation = new_observation
 
         status = agent.train()
         if status:
-            if not num_batch % epoch_size:
+            if not episode % epoch_size:
                 average_mistakes.append(gym_benchmark(num_benchmark, agent.online,
                                                       benchmark, episode_length) / num_benchmark)
 
-            num_batch += 1
-
         if stop:
-            print(f"Episode: {episode}, Moves: {i_episode}, Crash: {num_fail}, Loss: {agent.callback.loss[-1]},"
+            print(f"Episode: {episode}, Crash: {num_fail}, Moves: {i_episode}, Loss: {agent.callback.loss[-1]},"
                   f"Average: {average_mistakes[-1]}")
+
+            if i_episode < episode_length - 1:
+                num_fail += 1
 
             break
 
