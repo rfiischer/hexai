@@ -38,7 +38,7 @@ deploy scripts directly.
 We tested our DQN agent in `CartPole-v0` of OpenAI Gym. The current script
 is able to learn to balance the pole for over 200 steps, but catastrophic forgetting is happening.
 
-The `gym_script_0` is still WIP, but you can run this script and see that for moments
-the agent learns to balance the pole perfeclty, but later forgets.
+To fix this, we always save the best model during training.
 
-No pre-trained model is available.
+Pre-trained models are already available, and you can run the 
+deploy scripts directly.
