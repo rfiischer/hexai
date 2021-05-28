@@ -86,20 +86,29 @@ for episode in range(num_episodes):
         agent.update_memory(transition)
         observation = new_observation
 
-        status = agent.train()
-        if status:
-            if not episode % epoch_size:
-                average_mistakes.append(gym_benchmark(num_benchmark, agent.online,
-                                                      benchmark, episode_length) / num_benchmark)
+        agent.train()
 
         if stop:
-            print(f"Episode: {episode}, Crash: {num_fail}, Moves: {i_episode}, Loss: {agent.callback.loss[-1]},"
-                  f"Average: {average_mistakes[-1]}")
+            print(f"Episode: {episode}, Crash: {num_fail}, Moves: {i_episode}, Loss: {agent.callback.loss[-1]}")
 
             if i_episode < episode_length - 1:
                 num_fail += 1
 
             break
+
+    if not episode % epoch_size:
+        average = gym_benchmark(num_benchmark, agent.online,
+                                benchmark, episode_length) / num_benchmark
+
+        average_mistakes.append(average)
+
+        print(f"Average: {average_mistakes[-1]}")
+
+        if average == 0:
+            keras.models.save_model(agent.online, "./gmodel0_best")
+
+            savemat('./gmodel0_best/loss.mat',
+                    {'loss': agent.callback.loss[1:], 'average_mistakes': average_mistakes})
 
 # Save model
 keras.models.save_model(agent.online, "./gmodel0")

@@ -4,6 +4,6 @@ import gym
 from core.utils import gym_benchmark
 
 
-model = keras.models.load_model("./gmodel0")
+model = keras.models.load_model("./gmodel0_best")
 env = gym.make('CartPole-v0')
-gym_benchmark(10, model, env, render=True)
+print(gym_benchmark(10, model, env, render=True))
